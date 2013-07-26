@@ -9,6 +9,12 @@ Makefile.in
 .project
 .DS_Store
 *.swp
+compile
+test-driver
+iphone/iphoneos-build/
+iphone/*.deb
+iphone/*.log
+src/frontend/mosh
 
 /INSTALL
 /aclocal.m4
