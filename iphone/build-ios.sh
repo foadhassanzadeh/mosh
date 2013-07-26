@@ -220,9 +220,13 @@ rm -rf debroot localeroot
 
 # Package UTF-8 locales
 LOCALEDIR="$LOCALEROOT/usr/share/locale"
+PROFDIR="$LOCALEROOT/etc/profile.d"
 mkdir -p "$LOCALEDIR"
+mkdir -p "$PROFDIR"
 cp -pLR /usr/share/locale/en_US.UTF-8 "$LOCALEDIR/"
 cp -pLR /usr/share/locale/zh_CN.UTF-8 "$LOCALEDIR/"
+echo 'export LANG="en_US.UTF-8"' > "$PROFDIR/localeutf8.sh"
+chmod 755 "$PROFDIR/localeutf8.sh"
 LOCALESIZE="$(du -s -k "$LOCALEROOT" | awk '{print $1}')"
 LOCALEDEBNAME="com.linusyang.localeutf8_1.0-1"
 mkdir -p "$LOCALEROOT/DEBIAN"
