@@ -74,8 +74,7 @@ if [ ! -f .acl_built ]; then
     tar zxf "$SRCDIR"/autoconf-"$ACVER".tar.gz
     mv autoconf-"$ACVER"/ autoconf-"$ACVER"-local/
     cd autoconf-"$ACVER"-local/
-    ./configure CFLAGS="-O3 $CFLAGS" CXXFLAGS="$CXXFLAGS $CFLAGS" \
-                --prefix="$STAGLOCAL" \
+    ./configure --prefix="$STAGLOCAL" \
                 --enable-static \
                 $HOSTFLAG >>"$LOGFILE" 2>&1
     make >>"$LOGFILE" 2>&1
@@ -91,8 +90,7 @@ if [ ! -f .pbl_built ]; then
     tar jxf "$SRCDIR"/protobuf-"$PBVER".tar.bz2
     mv protobuf-"$PBVER"/ protobuf-"$PBVER"-local/
     cd protobuf-"$PBVER"-local/
-    ./configure CFLAGS="-O3 $CFLAGS" CXXFLAGS="$CXXFLAGS $CFLAGS" \
-                --prefix="$STAGLOCAL" \
+    ./configure --prefix="$STAGLOCAL" \
                 --enable-static \
                 $HOSTFLAG >>"$LOGFILE" 2>&1
     make >>"$LOGFILE" 2>&1
@@ -117,7 +115,7 @@ else
 fi
 export HOSTFLAG="--host=armv7-apple-darwin"
 export CPPFLAGS="-I$STAG/include -I$PLATROOT/usr/include"
-export CFLAGS="-O3 $CPPFLAGS"
+export CFLAGS="-O2 $CPPFLAGS"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-L$STAG/lib -L$PLATROOT/usr/lib -isysroot $PLATROOT -miphoneos-version-min=3.0"
 export CROSS_TOP="$DEVROOT"
