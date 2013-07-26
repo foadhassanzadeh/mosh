@@ -235,7 +235,7 @@
 		c = vec_sl(c,shift1);
 		return (block)vec_xor(c,t);
 	}
-#elif __ARM_NEON__
+#elif __ARM_NEON__ && !defined(__APPLE__)
     #include <arm_neon.h>
     typedef int8x16_t block;      /* Yay! Endian-neutral reads! */
     #define xor_block(x,y)             veorq_s8(x,y)
@@ -298,7 +298,7 @@
         return swap_if_le(rval);
 	}
 
-	#if __GNUC__ && __arm__
+	#if __GNUC__ && __arm__ && !defined(__APPLE__)
 	static inline block double_block(block b) {
 		__asm__ ("adds %1,%1,%1\n\t"
 				 "adcs %H1,%H1,%H1\n\t"
