@@ -131,18 +131,21 @@ static const char *usage_format =
 "Usage: %s [options] [--] [user@]host [command...]\n"
 "        --client=PATH        mosh client on local machine\n"
 "                                (default: mosh-client)\n"
-"        --server=PATH        mosh server on remote machine\n"
+"        --server=COMMAND     mosh server on remote machine\n"
 "                                (default: mosh-server)\n"
 "\n"
 "        --predict=adaptive   local echo for slower links [default]\n"
 "-a      --predict=always     use local echo even on fast links\n"
 "-n      --predict=never      never use local echo\n"
+"        --predict=experimental  aggressively echo even when incorrect\n"
 "\n"
 "-p NUM  --port=NUM           server-side UDP port\n"
 "\n"
 "        --ssh=COMMAND        ssh command to run when setting up session\n"
 "                                (example: \"ssh -p 2222\")\n"
 "                                (default: \"ssh\")\n"
+"\n"
+"        --no-init            do not send terminal initialization string\n"
 "\n"
 "        --help               this message\n"
 "        --version            version and copyright information\n"
@@ -166,7 +169,8 @@ void predict_check( const string &predict, bool env_set )
 {
   if ( predict != "adaptive" &&
        predict != "always" &&
-       predict != "never" ) {
+       predict != "never" &&
+       predict != "experimental" ) {
     fprintf( stderr, "%s: Unknown mode \"%s\"%s.\n", argv0, predict.c_str(),
         env_set ? " (MOSH_PREDICTION_DISPLAY in environment)" : "" );
     die( usage_format, argv0 );
@@ -202,7 +206,7 @@ int main( int argc, char *argv[] )
   string server = "mosh-server";
   string ssh = "ssh";
   string predict, port_request;
-  int help=0, version=0, fake_proxy=0;
+  int help=0, version=0, fake_proxy=0, term_init=1;
 
   static struct option long_options[] =
   {
@@ -211,6 +215,7 @@ int main( int argc, char *argv[] )
     { "predict",     required_argument,  0,              'r' },
     { "port",        required_argument,  0,              'p' },
     { "ssh",         required_argument,  0,              'S' },
+    { "init!",       no_argument,        &term_init,      1  },
     { "help",        no_argument,        &help,           1  },
     { "version",     no_argument,        &version,        1  },
     { "fake-proxy!", no_argument,        &fake_proxy,     1  },
@@ -501,5 +506,8 @@ int main( int argc, char *argv[] )
 
   setenv( "MOSH_KEY", key.c_str(), 1 );
   setenv( "MOSH_PREDICTION_DISPLAY", predict.c_str(), 1 );
+  if ( !term_init ) {
+    setenv( "MOSH_NO_TERM_INIT", "1", 1 );
+  }
   execlp( client.c_str(), client.c_str(), ip.c_str(), port.c_str(), (char *)NULL );
 }
