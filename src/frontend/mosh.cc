@@ -134,12 +134,13 @@ static const char *usage_format =
 "        --server=COMMAND     mosh server on remote machine\n"
 "                                (default: mosh-server)\n"
 "\n"
-"        --predict=adaptive   local echo for slower links [default]\n"
-"-a      --predict=always     use local echo even on fast links\n"
-"-n      --predict=never      never use local echo\n"
+"        --predict=adaptive      local echo for slower links [default]\n"
+"-a      --predict=always        use local echo even on fast links\n"
+"-n      --predict=never         never use local echo\n"
 "        --predict=experimental  aggressively echo even when incorrect\n"
 "\n"
-"-p NUM  --port=NUM           server-side UDP port\n"
+"-p PORT[:PORT2]\n"
+"        --port=PORT[:PORT2]  server-side UDP port or range\n"
 "\n"
 "        --ssh=COMMAND        ssh command to run when setting up session\n"
 "                                (example: \"ssh -p 2222\")\n"
@@ -199,6 +200,17 @@ void cat( int ifd, int ofd )
   }
 }
 
+int string_to_int( const string &input )
+{
+  const char *s = input.c_str();
+  char *t;
+  long l = strtol( s, &t, 10 );
+  if ( s == t ) {
+    return -1;
+  }
+  return (int) l;
+}
+
 int main( int argc, char *argv[] )
 {
   argv0 = argv[0];
@@ -215,10 +227,10 @@ int main( int argc, char *argv[] )
     { "predict",     required_argument,  0,              'r' },
     { "port",        required_argument,  0,              'p' },
     { "ssh",         required_argument,  0,              'S' },
-    { "init!",       no_argument,        &term_init,      1  },
+    { "no-init",     no_argument,        &term_init,      0  },
     { "help",        no_argument,        &help,           1  },
     { "version",     no_argument,        &version,        1  },
-    { "fake-proxy!", no_argument,        &fake_proxy,     1  },
+    { "fake-proxy",  no_argument,        &fake_proxy,     1  },
     { 0, 0, 0, 0 }
   };
   while ( 1 ) {
@@ -277,12 +289,35 @@ int main( int argc, char *argv[] )
   }
 
   if ( port_request.size() ) {
-    if ( port_request.find_first_not_of( "0123456789" ) != string::npos ||
-         atoi( port_request.c_str() ) < 0 ||
-         atoi( port_request.c_str() ) > 65535 ) {
-      die( "%s: Server-side port (%s) must be within valid range [0..65535].",
+    if ( port_request.find_first_not_of( "0123456789:" ) != string::npos ) {
+      die( "%s: Server-side port or range (%s) is not valid.",
            argv[0],
            port_request.c_str() );
+    } else {
+      size_t colon_pos = port_request.find( ":" );
+      if ( colon_pos != string::npos ) {
+        string low = port_request.substr( 0, colon_pos );
+        string high = port_request.substr( colon_pos + 1 );
+        int low_num = string_to_int( low );
+        int high_num = string_to_int( high );
+        if ( low_num <= 0 || low_num > 65535 || high_num <= 0 || high_num > 65535 ) {
+          die( "%s: Server-side port (%s) must be within valid range [1..65535].",
+               argv[0],
+               port_request.c_str() );
+        }
+        if ( low_num > high_num ) {
+          die( "%s: Server-side port range (%s): low port greater than high port.",
+               argv[0],
+               port_request.c_str() );
+        }
+      } else {
+        int port_num = string_to_int( port_request );
+        if ( port_num <= 0 || port_num > 65535 ) {
+          die( "%s: Server-side port (%s) must be within valid range [1..65535].",
+               argv[0],
+               port_request.c_str() );
+        }
+      }
     }
   }
 
